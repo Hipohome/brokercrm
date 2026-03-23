@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrokerCRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+/* SIDEBAR */
+.sidebar{width:210px;min-width:210px;background:#1a1a1a;display:flex;flex-direction:column;padding:0}
+.logo{padding:20px 18px 16px;border-bottom:1px solid #2d2d2d}
+.logo-t{font-size:16px;font-weight:600;color:#fff;letter-spacing:-.3px}
+.logo-s{font-size:11px;color:#666;margin-top:2px}
+.nav{padding:9px 18px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:9px;color:#888;border-left:2px solid transparent;transition:all .15s}
+.nav:hover{color:#ccc;background:#222}
+.nav.on{color:#fff;border-left-color:#4a9eff;background:#222;font-weight:500}
+.nav-ic{font-size:13px;width:16px;text-align:center}
+.sidebar-foot{padding:14px 18px;border-top:1px solid #2d2d2d;margin-top:auto}
+.sidebar-foot-name{font-size:12px;font-weight:500;color:#ccc}
+.sidebar-foot-role{font-size:11px;color:#555}
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.view{display:none;flex-direction:column;height:100%}.view.on{display:flex}
+.form-view{display:none;flex-direction:column;height:100%;background:#fff}.form-view.on{display:flex}
+.topbar{padding:14px 24px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fff}
+.topbar-t{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.content{flex:1;overflow-y:auto;padding:24px}
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#333;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit}
+.btn:hover{background:#f5f5f5}
+.btn:disabled{opacity:.5;cursor:default}
+.bp{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.bp:hover{background:#333}
+.bs{padding:5px 12px;font-size:12px}
+.btn-danger{color:#c0392b;border-color:#f5c6cb}
+.btn-danger:hover{background:#fff5f5}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sc{background:#f9f9f7;border-radius:10px;padding:16px;border:1px solid #eee}
+.sl{font-size:11px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;font-weight:500}
+.sv{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.ss{font-size:11px;color:#999;margin-top:3px}
+/* PIPELINE */
+.pipeline{display:flex;gap:12px;overflow-x:auto;height:100%;padding-bottom:4px}
+.pcol{min-width:190px;flex:1;background:#f9f9f7;border-radius:10px;padding:12px;border:1px solid #eee;overflow-y:auto;display:flex;flex-direction:column}
+.pcol-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0}
+.pcol-n{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#555}
+.pcol-c{font-size:11px;background:#fff;border:1px solid #eee;border-radius:10px;padding:1px 8px;color:#888}
+.kc{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.kc:hover{border-color:#bbb;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.kc-n{font-size:13px;font-weight:500;margin-bottom:3px}
+.kc-d{font-size:11px;color:#999;margin-bottom:6px}
+.kc-b{display:flex;align-items:center;justify-content:space-between}
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;text-transform:uppercase;letter-spacing:.5px;background:#fafafa}
+td{padding:11px 14px;border-bottom:1px solid #f0f0f0;color:#333}
+tr:hover td{background:#fafafa}
+/* PILLS & TAGS */
+.pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;display:inline-block}
+.tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.p-ana{background:#EBF4FF;color:#1a6eb5}.p-pre{background:#F0EEFF;color:#5b3fc4}
+.p-tas{background:#FFF4E5;color:#c47a00}.p-apr{background:#EAFAF1;color:#1a7a45}
+.p-fir{background:#F0F0F0;color:#555}.p-den{background:#FFEBEB;color:#c0392b}
+.t-fij{background:#EAFAF1;color:#1a7a45}.t-var{background:#FFF4E5;color:#c47a00}
+.t-mix{background:#F0EEFF;color:#5b3fc4}.t-com{background:#EBF4FF;color:#1a6eb5}
+.imp{font-size:13px;font-weight:600;color:#1a6eb5}
+/* AVATAR */
+.av{border-radius:50%;background:#D6E8FF;color:#1a6eb5;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0}
+/* SEARCH */
+.sbar{display:flex;gap:10px;margin-bottom:16px}
+/* FORM */
+.form-scroll{flex:1;overflow-y:auto;padding:24px}
+.fwrap{max-width:600px;margin:0 auto}
+.fwrap-wide{max-width:1120px;margin:0 auto}
+.fcard{background:#fff;border:1px solid #e8e8e8;border-radius:12px;margin-bottom:16px;overflow:hidden}
+.fcard-h{padding:16px 22px;border-bottom:1px solid #eee;font-size:14px;font-weight:600;background:#fafafa}
+.fcard-b{padding:20px 22px}
+.fcard-f{padding:14px 22px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px;background:#fafafa}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.ff{display:flex;flex-direction:column;gap:5px}.ff.full{grid-column:1/-1}
+label{font-size:12px;color:#888;font-weight:500}
+input,select,textarea{padding:8px 11px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;width:100%;font-family:inherit;transition:border .15s}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#4a9eff;box-shadow:0 0 0 3px rgba(74,158,255,.1)}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:18px}
+.tab{padding:9px 18px;font-size:13px;cursor:pointer;color:#999;border-bottom:2px solid transparent;transition:all .15s;font-weight:500}
+.tab.on{color:#1a1a1a;border-bottom-color:#1a1a1a}
+/* NOTA */
+.nota{padding:10px 13px;background:#f9f9f7;border-radius:7px;margin-bottom:8px;font-size:13px;border:1px solid #eee}
+/* DETAIL */
+.dr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f0f0}
+.dr:last-child{border-bottom:none}.dk{color:#888;font-weight:500}.dv{font-weight:600;text-align:right}
+/* SEP */
+.sep{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#aaa;margin:16px 0 10px;padding-bottom:7px;border-bottom:1px solid #eee}
+/* TITULAR COLS */
+.titulares{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tcol{border:1px solid #e8e8e8;border-radius:12px;padding:18px;transition:opacity .2s,border-color .2s}
+.tcol.disabled{opacity:.3;pointer-events:none}
+.tcol.active-col{border-color:#4a9eff}
+.tcol-head{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.b1{background:#EBF4FF;color:#1a6eb5;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600}
+.b2{background:#EAFAF1;color:#1a7a45;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600}
+.tcol-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888}
+/* TOGGLE */
+.sw-wrap{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:18px;border-bottom:1px solid #eee;cursor:pointer;user-select:none}
+.sw-track{width:42px;height:24px;background:#ddd;border-radius:12px;position:relative;transition:background .2s;flex-shrink:0}
+.sw-track.on{background:#1a1a1a}
+.sw-thumb{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sw-track.on .sw-thumb{left:21px}
+.sw-label{font-size:13px;color:#555;font-weight:500}
+/* LOADING */
+.loader{display:flex;align-items:center;justify-content:center;padding:40px;color:#999;font-size:13px;gap:10px}
+.spin{width:18px;height:18px;border:2px solid #eee;border-top-color:#999;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#c0392b}
+/* RESUMEN */
+.resumen-card{background:#f9f9f7;border:1px solid #eee;border-radius:10px;padding:16px;margin-top:16px}
+.resumen-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#888;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-t">BrokerCRM</div>
+      <div class="logo-s">Gestión hipotecaria</div>
+    </div>
+    <div style="padding:12px 0;flex:1">
+      <div class="nav on" id="n-dash" onclick="go('dash')"><span class="nav-ic">◈</span> Dashboard</div>
+      <div class="nav" id="n-pipe" onclick="go('pipe')"><span class="nav-ic">⊞</span> Pipeline</div>
+      <div class="nav" id="n-ops" onclick="go('ops')"><span class="nav-ic">≡</span> Operaciones</div>
+      <div class="nav" id="n-clis" onclick="go('clis')"><span class="nav-ic">◎</span> Clientes</div>
+    </div>
+    <div class="sidebar-foot">
+      <div class="sidebar-foot-name">BrokerCRM</div>
+      <div class="sidebar-foot-role">Nationale Nederlanden</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div class="view on" id="v-dash">
+      <div class="topbar"><div class="topbar-t">Dashboard</div><button class="btn bp bs" onclick="openOpForm()">+ Nueva operación</button></div>
+      <div class="content">
+        <div class="stats" id="stats"><div class="loader"><div class="spin"></div> Cargando...</div></div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:12px;color:#aaa;text-transform:uppercase;letter-spacing:.6px">Operaciones recientes</div>
+        <div id="dash-list"><div class="loader"><div class="spin"></div></div></div>
+      </div>
+    </div>
+
+    <!-- PIPELINE -->
+    <div class="view" id="v-pipe">
+      <div class="topbar"><div class="topbar-t">Pipeline</div><button class="btn bp bs" onclick="openOpForm()">+ Nueva operación</button></div>
+      <div class="content" style="overflow:hidden;padding-bottom:4px"><div class="pipeline" id="pipe-board"><div class="loader"><div class="spin"></div></div></div></div>
+    </div>
+
+    <!-- OPERACIONES -->
+    <div class="view" id="v-ops">
+      <div class="topbar"><div class="topbar-t">Operaciones</div><button class="btn bp bs" onclick="openOpForm()">+ Nueva operación</button></div>
+      <div class="content">
+        <div class="sbar">
+          <input id="s-ops" placeholder="Buscar cliente o banco..." oninput="rOps()" style="max-width:280px">
+          <select id="f-est" onchange="rOps()" style="max-width:160px">
+            <option value="">Todos los estados</option>
+            <option>Análisis</option><option>Presentada</option><option>Tasación</option>
+            <option>Aprobada</option><option>Firmada</option><option>Denegada</option>
+          </select>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>Cliente</th><th>Importe</th><th>Banco</th><th>Tipo</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+          <tbody id="ops-tb"><tr><td colspan="7"><div class="loader"><div class="spin"></div></div></td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="view" id="v-clis">
+      <div class="topbar"><div class="topbar-t">Clientes</div><button class="btn bp bs" onclick="openCliForm()">+ Nuevo cliente</button></div>
+      <div class="content">
+        <div class="sbar"><input id="s-clis" placeholder="Buscar cliente..." oninput="rClis()" style="max-width:280px"></div>
+        <div class="tw"><table>
+          <thead><tr><th>Nombre</th><th>Teléfono</th><th>Trabajo</th><th>Ingresos netos</th><th>Ops.</th><th>Fuente</th><th></th></tr></thead>
+          <tbody id="clis-tb"><tr><td colspan="7"><div class="loader"><div class="spin"></div></div></td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- FORM OPERACION -->
+    <div class="form-view" id="fv-op">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn bs" onclick="backFrom('op')">← Volver</button>
+          <div class="topbar-t" id="fv-op-title">Nueva operación</div>
+        </div>
+        <div id="op-saving" style="font-size:12px;color:#999;display:none">Guardando...</div>
+      </div>
+      <div class="form-scroll"><div class="fwrap">
+        <div class="fcard">
+          <div class="fcard-b">
+            <div class="tabs">
+              <div class="tab on" id="t-dat" onclick="swTab('dat')">Datos</div>
+              <div class="tab" id="t-not" onclick="swTab('not')">Notas</div>
+            </div>
+            <div id="tab-dat"><div class="g2">
+              <div class="ff full"><label>Cliente *</label><select id="op-cli"><option value="">Seleccionar cliente...</option></select></div>
+              <div class="ff"><label>Importe solicitado (€) *</label><input type="number" id="op-imp" placeholder="250000"></div>
+              <div class="ff"><label>Valor tasación (€)</label><input type="number" id="op-tas" placeholder="300000"></div>
+              <div class="ff"><label>Banco</label><input type="text" id="op-ban" placeholder="CaixaBank, BBVA..."></div>
+              <div class="ff"><label>Tipo hipoteca</label><select id="op-tip"><option>Fijo</option><option>Variable</option><option>Mixto</option><option>Compra</option></select></div>
+              <div class="ff"><label>Plazo (años)</label><input type="number" id="op-pla" placeholder="25"></div>
+              <div class="ff"><label>TIN (%)</label><input type="number" id="op-tin" step="0.01" placeholder="3.50"></div>
+              <div class="ff"><label>Estado</label><select id="op-est"><option>Análisis</option><option>Presentada</option><option>Tasación</option><option>Aprobada</option><option>Firmada</option><option>Denegada</option></select></div>
+              <div class="ff"><label>Fecha inicio</label><input type="date" id="op-fec"></div>
+              <div class="ff"><label>Honorarios (€)</label><input type="number" id="op-hon" placeholder="3000"></div>
+              <div class="ff full"><label>Observaciones</label><textarea id="op-obs" placeholder="Notas sobre la operación..."></textarea></div>
+            </div></div>
+            <div id="tab-not" style="display:none">
+              <div id="notas-list" style="margin-bottom:12px"></div>
+              <div class="ff"><label>Nueva nota</label><textarea id="nueva-nota" placeholder="Escribe una nota..."></textarea></div>
+              <button class="btn bs" style="margin-top:8px" onclick="addNota()">Guardar nota</button>
+            </div>
+          </div>
+          <div class="fcard-f">
+            <button class="btn" onclick="backFrom('op')">Cancelar</button>
+            <button class="btn bp" id="btn-save-op" onclick="saveOp()">Guardar operación</button>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- FORM CLIENTE -->
+    <div class="form-view" id="fv-cli">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn bs" onclick="backFrom('cli')">← Volver</button>
+          <div class="topbar-t" id="fv-cli-title">Nuevo cliente</div>
+        </div>
+        <div id="cli-saving" style="font-size:12px;color:#999;display:none">Guardando...</div>
+      </div>
+      <div class="form-scroll" style="padding:20px 24px">
+        <div class="fwrap-wide">
+          <!-- Toggle -->
+          <div class="sw-wrap" onclick="toggleCo()">
+            <div class="sw-track" id="sw-track"><div class="sw-thumb"></div></div>
+            <span class="sw-label">Activar cotitular / pareja</span>
+          </div>
+          <!-- Titulares -->
+          <div class="titulares">
+            <!-- T1 -->
+            <div class="tcol active-col" id="col-t1">
+              <div class="tcol-head"><span class="b1">Titular 1</span><span class="tcol-title">Datos personales</span></div>
+              <div class="g2">
+                <div class="ff"><label>Nombre *</label><input type="text" id="c1-nom" placeholder="Juan"></div>
+                <div class="ff"><label>Apellidos</label><input type="text" id="c1-ape" placeholder="García López"></div>
+                <div class="ff"><label>Teléfono</label><input type="text" id="c1-tel" placeholder="600 000 000"></div>
+                <div class="ff"><label>Email</label><input type="email" id="c1-ema"></div>
+                <div class="ff"><label>DNI/NIE</label><input type="text" id="c1-dni"></div>
+                <div class="ff"><label>Fuente captación</label><select id="c1-fue"><option>LinkedIn</option><option>Inmobiliaria</option><option>Referido</option><option>Web</option><option>WhatsApp</option><option>Otro</option></select></div>
+              </div>
+              <div class="sep">Situación laboral</div>
+              <div class="g2">
+                <div class="ff full"><label>Tipo de trabajo</label><select id="c1-trab"><option value="">Seleccionar...</option><option>Cuenta ajena (indefinido)</option><option>Cuenta ajena (temporal)</option><option>Autónomo</option><option>Funcionario</option><option>Empresario / Sociedad</option><option>Pensionista</option><option>Sin ingresos</option></select></div>
+                <div class="ff"><label>Ingresos netos mensuales (€)</label><input type="number" id="c1-ing" placeholder="2400"></div>
+                <div class="ff"><label>Antigüedad laboral</label><input type="text" id="c1-ant" placeholder="5 años"></div>
+              </div>
+              <div class="sep">Situación financiera</div>
+              <div class="g2">
+                <div class="ff"><label>Cuota préstamos personales (€/mes)</label><input type="number" id="c1-cuo" placeholder="0"></div>
+                <div class="ff"><label>Cuota hipoteca actual (€/mes)</label><input type="number" id="c1-hip" placeholder="0"></div>
+                <div class="ff"><label>Hijos a cargo</label><input type="number" id="c1-hij" placeholder="0" min="0"></div>
+                <div class="ff"><label>Ahorros disponibles (€)</label><input type="number" id="c1-aho" placeholder="50000"></div>
+              </div>
+              <div class="sep">Notas</div>
+              <div class="ff"><textarea id="c1-not" placeholder="Observaciones del titular..." style="min-height:60px"></textarea></div>
+            </div>
+            <!-- T2 -->
+            <div class="tcol disabled" id="col-t2">
+              <div class="tcol-head"><span class="b2">Cotitular</span><span class="tcol-title">Datos personales</span></div>
+              <div class="g2">
+                <div class="ff"><label>Nombre</label><input type="text" id="c2-nom" placeholder="María"></div>
+                <div class="ff"><label>Apellidos</label><input type="text" id="c2-ape" placeholder="López Ruiz"></div>
+                <div class="ff"><label>Teléfono</label><input type="text" id="c2-tel" placeholder="600 000 001"></div>
+                <div class="ff"><label>Email</label><input type="email" id="c2-ema"></div>
+                <div class="ff"><label>DNI/NIE</label><input type="text" id="c2-dni"></div>
+                <div class="ff"><label>Relación</label><select id="c2-rel"><option>Pareja / Cónyuge</option><option>Familiar</option><option>Socio</option><option>Otro</option></select></div>
+              </div>
+              <div class="sep">Situación laboral</div>
+              <div class="g2">
+                <div class="ff full"><label>Tipo de trabajo</label><select id="c2-trab"><option value="">Seleccionar...</option><option>Cuenta ajena (indefinido)</option><option>Cuenta ajena (temporal)</option><option>Autónomo</option><option>Funcionario</option><option>Empresario / Sociedad</option><option>Pensionista</option><option>Sin ingresos</option></select></div>
+                <div class="ff"><label>Ingresos netos mensuales (€)</label><input type="number" id="c2-ing" placeholder="2000"></div>
+                <div class="ff"><label>Antigüedad laboral</label><input type="text" id="c2-ant" placeholder="3 años"></div>
+              </div>
+              <div class="sep">Situación financiera</div>
+              <div class="g2">
+                <div class="ff"><label>Cuota préstamos personales (€/mes)</label><input type="number" id="c2-cuo" placeholder="0"></div>
+                <div class="ff"><label>Cuota hipoteca actual (€/mes)</label><input type="number" id="c2-hip" placeholder="0"></div>
+                <div class="ff"><label>Hijos a cargo</label><input type="number" id="c2-hij" placeholder="0" min="0"></div>
+                <div class="ff"><label>Ahorros disponibles (€)</label><input type="number" id="c2-aho" placeholder="0"></div>
+              </div>
+              <div class="sep">Notas</div>
+              <div class="ff"><textarea id="c2-not" placeholder="Observaciones del cotitular..." style="min-height:60px"></textarea></div>
+            </div>
+          </div>
+          <!-- Resumen -->
+          <div id="resumen" style="display:none">
+            <div class="resumen-card">
+              <div class="resumen-title">Resumen conjunto</div>
+              <div class="g3">
+                <div class="sc"><div class="sl">Ingresos conjuntos</div><div class="sv" id="r-ing" style="font-size:18px;color:#1a6eb5">—</div></div>
+                <div class="sc"><div class="sl">Cuotas totales</div><div class="sv" id="r-cuo" style="font-size:18px;color:#c0392b">—</div></div>
+                <div class="sc"><div class="sl">Ratio endeudamiento</div><div class="sv" id="r-rat" style="font-size:18px">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding:16px 0 24px">
+            <button class="btn" onclick="backFrom('cli')">Cancelar</button>
+            <button class="btn bp" id="btn-save-cli" onclick="saveCli()">Guardar cliente</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETALLE -->
+    <div class="form-view" id="fv-det">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn bs" onclick="backFrom('det')">← Volver</button>
+          <div class="topbar-t" id="fv-det-title">Detalle</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn bs" id="det-edit-btn">Editar</button>
+          <button class="btn bs btn-danger" id="det-del-btn">Eliminar</button>
+        </div>
+      </div>
+      <div class="form-scroll"><div class="fwrap">
+        <div class="fcard"><div class="fcard-b" id="det-body"></div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://eitepymefnaiyrcxravt.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpdGVweW1lZm5haXlyY3hyYXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODQ0MjksImV4cCI6MjA4OTg2MDQyOX0.LwK2rMyjWj4Ab0lPdd4WLn2d2d8dZtJ9-tJ6M8OadJg';
+
+const H = {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=representation','Accept-Profile':'public','Content-Profile':'public'};
+const HG = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept-Profile':'public'};
+
+async function dbGet(table, filter=''){
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?order=id.desc${filter}`, {headers:HG});
+  if(!r.ok){const t=await r.text();throw new Error(t);}
+  return r.json();
+}
+async function dbInsert(table, data){
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {method:'POST', headers:H, body:JSON.stringify(data)});
+  if(!r.ok){const t=await r.text();throw new Error(t);}
+  const res=await r.json();
+  return Array.isArray(res)?res:[res];
+}
+async function dbUpdate(table, id, data){
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {method:'PATCH', headers:H, body:JSON.stringify(data)});
+  if(!r.ok){const t=await r.text();throw new Error(t);}
+  return r.json();
+}
+async function dbDelete(table, id){
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {method:'DELETE', headers:HG});
+  if(!r.ok){const t=await r.text();throw new Error(t);}
+}
+
+const STAGES=['Análisis','Presentada','Tasación','Aprobada','Firmada','Denegada'];
+const PC={Análisis:'p-ana',Presentada:'p-pre',Tasación:'p-tas',Aprobada:'p-apr',Firmada:'p-fir',Denegada:'p-den'};
+const TC={Fijo:'t-fij',Variable:'t-var',Mixto:'t-mix',Compra:'t-com'};
+
+let ops=[], clis=[], eOp=null, eCli=null, curP='dash', prevP='dash', coActive=false;
+
+function toast(msg, err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(err?' error':'');
+  setTimeout(()=>t.className='toast',2500);
+}
+const fm=n=>'€'+Number(n||0).toLocaleString('es-ES');
+const gc=id=>clis.find(c=>c.id==id)||{nom:'—',ape:''};
+const cn=id=>{const c=gc(id);return c.nom+(c.ape?' '+c.ape:'');};
+const ini=s=>(s||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+const avH=(txt,sz=30)=>`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${sz<=26?10:12}px">${ini(txt)}</div>`;
+const gv=id=>{const e=document.getElementById(id);return e?e.value:''};
+const sv=async(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||''};
+
+function showView(id){document.querySelectorAll('.view,.form-view').forEach(v=>v.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function go(p){
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  document.getElementById('n-'+p).classList.add('on');
+  prevP=curP; curP=p; showView('v-'+p);
+  if(p==='dash')rDash(); if(p==='pipe')rPipe(); if(p==='ops')rOps(); if(p==='clis')rClis();
+}
+
+async function loadAll(){
+  try{
+    [clis, ops] = await Promise.all([dbGet('clientes'), dbGet('operaciones')]);
+  } catch(e){ toast('Error al conectar con la base de datos',true); }
+}
+
+function rDash(){
+  const tot=ops.reduce((s,o)=>s+(+o.imp||0),0);
+  const fir=ops.filter(o=>o.est==='Firmada').length;
+  const hon=ops.reduce((s,o)=>s+(+o.hon||0),0);
+  const apr=ops.filter(o=>o.est==='Aprobada').length;
+  document.getElementById('stats').innerHTML=`
+    <div class="sc"><div class="sl">Operaciones</div><div class="sv">${ops.length}</div><div class="ss">${fir} firmadas</div></div>
+    <div class="sc"><div class="sl">Volumen total</div><div class="sv" style="font-size:18px">${fm(tot)}</div></div>
+    <div class="sc"><div class="sl">Honorarios</div><div class="sv" style="font-size:18px;color:#1a7a45">${fm(hon)}</div></div>
+    <div class="sc"><div class="sl">En aprobación</div><div class="sv">${apr}</div><div class="ss">pendientes firma</div></div>`;
+  const rec=[...ops].slice(0,6);
+  document.getElementById('dash-list').innerHTML=rec.length?`<div class="tw"><table><thead><tr><th>Cliente</th><th>Importe</th><th>Banco</th><th>Estado</th></tr></thead><tbody>`+
+    rec.map(o=>`<tr style="cursor:pointer" onclick="showDet(${o.id})"><td><div style="display:flex;align-items:center;gap:8px">${avH(cn(o.cliente_id),26)} ${cn(o.cliente_id)}</div></td><td class="imp">${fm(o.imp)}</td><td>${o.ban||'—'}</td><td><span class="pill ${PC[o.est]||'p-ana'}">${o.est||'—'}</span></td></tr>`).join('')+'</tbody></table></div>':
+    '<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">Sin operaciones todavía. Crea la primera.</div>';
+}
+function rPipe(){
+  document.getElementById('pipe-board').innerHTML=STAGES.map(s=>{
+    const it=ops.filter(o=>o.est===s);
+    return`<div class="pcol"><div class="pcol-h"><span class="pcol-n">${s}</span><span class="pcol-c">${it.length}</span></div>${it.map(o=>`<div class="kc" onclick="showDet(${o.id})"><div class="kc-n">${cn(o.cliente_id)}</div><div class="kc-d">${o.ban||'—'} · ${o.pla||'?'}a</div><div class="kc-b"><span class="tag ${TC[o.tip]||'t-com'}">${o.tip||'—'}</span><span class="imp">${fm(o.imp)}</span></div></div>`).join('')}</div>`;
+  }).join('');
+}
+function rOps(){
+  const q=(gv('s-ops')||'').toLowerCase(), fs=gv('f-est');
+  const f=ops.filter(o=>(!q||cn(o.cliente_id).toLowerCase().includes(q)||(o.ban||'').toLowerCase().includes(q))&&(!fs||o.est===fs));
+  document.getElementById('ops-tb').innerHTML=f.length?f.map(o=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:8px">${avH(cn(o.cliente_id),26)} ${cn(o.cliente_id)}</div></td>
+    <td class="imp">${fm(o.imp)}</td><td>${o.ban||'—'}</td>
+    <td><span class="tag ${TC[o.tip]||'t-com'}">${o.tip||'—'}</span></td>
+    <td><span class="pill ${PC[o.est]||'p-ana'}">${o.est||'—'}</span></td>
+    <td>${o.fec||'—'}</td>
+    <td><div style="display:flex;gap:4px"><button class="btn bs" onclick="showDet(${o.id})">Ver</button><button class="btn bs" onclick="openOpForm(${o.id})">Editar</button></div></td>
+  </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa">Sin resultados</td></tr>`;
+}
+function rClis(){
+  const q=(gv('s-clis')||'').toLowerCase();
+  const f=clis.filter(c=>!q||(c.nom+' '+(c.ape||'')).toLowerCase().includes(q));
+  document.getElementById('clis-tb').innerHTML=f.length?f.map(c=>{
+    const n=ops.filter(o=>o.cliente_id===c.id).length;
+    const co=c.co;
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="av" style="width:30px;height:30px;font-size:12px">${ini(c.nom)}</div>
+      <div><div style="font-weight:500">${c.nom||''} ${c.ape||''}</div>${co?`<div style="font-size:11px;color:#999">+ ${co.nom||''} ${co.ape||''}</div>`:''}</div></div></td>
+      <td>${c.tel||'—'}</td>
+      <td><span class="tag t-fij" style="font-size:10px">${(c.trab||'—').split(' ')[0]}</span></td>
+      <td>${c.ing?fm(c.ing)+'/mes':'—'}</td>
+      <td><span style="font-size:12px;background:#f5f5f5;padding:2px 9px;border-radius:20px;border:1px solid #eee">${n}</span></td>
+      <td><span class="tag t-com">${c.fue||'—'}</span></td>
+      <td><div style="display:flex;gap:4px"><button class="btn bs" onclick="openCliForm(${c.id})">Editar</button><button class="btn bs btn-danger" onclick="delCli(${c.id})">Borrar</button></div></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa">Sin clientes</td></tr>`;
+}
+
+// OPERACIONES
+function openOpForm(id){
+  eOp=id||null;
+  document.getElementById('fv-op-title').textContent=id?'Editar operación':'Nueva operación';
+  const sel=document.getElementById('op-cli');
+  sel.innerHTML='<option value="">Seleccionar cliente...</option>'+clis.map(c=>`<option value="${c.id}">${c.nom||''} ${c.ape||''}</option>`).join('');
+  if(id){
+    const o=ops.find(x=>x.id===id);
+    if(o){
+      sel.value=o.cliente_id;
+      ['imp','tas','ban','pla','tin','hon','obs'].forEach(f=>sv('op-'+f,o[f]));
+      sv('op-tip',o.tip); sv('op-est',o.est); sv('op-fec',o.fec);
+      rNotas(o.notas||[]);
+    }
+  } else {
+    ['imp','tas','ban','pla','tin','hon','obs'].forEach(f=>sv('op-'+f,''));
+    sv('op-tip','Fijo'); sv('op-est','Análisis');
+    document.getElementById('op-fec').value=new Date().toISOString().split('T')[0];
+    rNotas([]);
+  }
+  swTab('dat'); prevP=curP; showView('fv-op');
+}
+function rNotas(n){
+  document.getElementById('notas-list').innerHTML=n.length?n.map(x=>`<div class="nota">${x}</div>`).join(''):`<div style="font-size:13px;color:#aaa;padding:6px 0">Sin notas aún</div>`;
+}
+async function addNota(){
+  const t=gv('nueva-nota').trim(); if(!t)return;
+  const d=new Date().toLocaleDateString('es-ES');
+  if(eOp){
+    const o=ops.find(x=>x.id===eOp);
+    if(o){
+      o.notas=o.notas||[]; o.notas.push(d+' — '+t);
+      try{ await dbUpdate('operaciones',eOp,{notas:o.notas}); rNotas(o.notas); toast('Nota guardada'); }
+      catch(e){ toast('Error al guardar nota',true); }
+    }
+  }
+  sv('nueva-nota','');
+}
+async function saveOp(){
+  const cId=parseInt(gv('op-cli')); if(!cId){toast('Selecciona un cliente',true);return;}
+  const imp=gv('op-imp'); if(!imp){toast('Introduce el importe',true);return;}
+  const btn=document.getElementById('btn-save-op');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const data={cliente_id:cId,imp:+imp,tas:+gv('op-tas')||null,ban:gv('op-ban'),tip:gv('op-tip'),pla:+gv('op-pla')||null,tin:+gv('op-tin')||null,est:gv('op-est'),fec:gv('op-fec')||null,hon:+gv('op-hon')||null,obs:gv('op-obs')};
+  try{
+    if(eOp){ await dbUpdate('operaciones',eOp,data); ops=ops.map(o=>o.id===eOp?{...o,...data}:o); toast('Operación actualizada'); }
+    else{ const [res]=await dbInsert('operaciones',{...data,notas:[]}); ops=[res,...ops]; toast('Operación creada'); }
+    backFrom('op');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+  btn.disabled=false; btn.textContent='Guardar operación';
+}
+async function delOp(id){
+  if(!confirm('¿Eliminar esta operación?'))return;
+  try{ await dbDelete('operaciones',id); ops=ops.filter(x=>x.id!==id); toast('Operación eliminada'); backFrom('det'); }
+  catch(e){ toast('Error al eliminar',true); }
+}
+
+function showDet(id){
+  const o=ops.find(x=>x.id===id); if(!o)return;
+  document.getElementById('fv-det-title').textContent=cn(o.cliente_id);
+  document.getElementById('det-body').innerHTML=`
+    <div class="dr"><span class="dk">Importe</span><span class="dv imp">${fm(o.imp)}</span></div>
+    <div class="dr"><span class="dk">Tasación</span><span class="dv">${o.tas?fm(o.tas):'—'}</span></div>
+    <div class="dr"><span class="dk">Banco</span><span class="dv">${o.ban||'—'}</span></div>
+    <div class="dr"><span class="dk">Tipo</span><span class="dv"><span class="tag ${TC[o.tip]||'t-com'}">${o.tip||'—'}</span></span></div>
+    <div class="dr"><span class="dk">Plazo</span><span class="dv">${o.pla?o.pla+' años':'—'}</span></div>
+    <div class="dr"><span class="dk">TIN</span><span class="dv">${o.tin?o.tin+'%':'—'}</span></div>
+    <div class="dr"><span class="dk">Estado</span><span class="dv"><span class="pill ${PC[o.est]||'p-ana'}">${o.est||'—'}</span></span></div>
+    <div class="dr"><span class="dk">Fecha</span><span class="dv">${o.fec||'—'}</span></div>
+    <div class="dr"><span class="dk">Honorarios</span><span class="dv">${o.hon?fm(o.hon):'—'}</span></div>
+    ${o.obs?`<div class="dr"><span class="dk">Obs.</span><span class="dv" style="font-size:12px;max-width:60%">${o.obs}</span></div>`:''}
+    ${(o.notas&&o.notas.length)?`<div style="margin-top:14px"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#aaa;margin-bottom:8px">Notas</div>${o.notas.map(n=>`<div class="nota">${n}</div>`).join('')}</div>`:''}`;
+  document.getElementById('det-edit-btn').onclick=()=>{prevP=curP;openOpForm(id);};
+  document.getElementById('det-del-btn').onclick=()=>delOp(id);
+  prevP=curP; showView('fv-det');
+}
+
+// CLIENTES
+function toggleCo(){
+  coActive=!coActive;
+  document.getElementById('sw-track').classList.toggle('on',coActive);
+  document.getElementById('col-t2').classList.toggle('disabled',!coActive);
+  document.getElementById('resumen').style.display=coActive?'block':'none';
+  if(coActive)calcResumen();
+}
+function setCoState(val){
+  coActive=val;
+  document.getElementById('sw-track').classList.toggle('on',val);
+  document.getElementById('col-t2').classList.toggle('disabled',!val);
+  document.getElementById('resumen').style.display=val?'block':'none';
+}
+function calcResumen(){
+  const i1=+gv('c1-ing')||0, i2=+gv('c2-ing')||0;
+  const c1=(+gv('c1-cuo')||0)+(+gv('c1-hip')||0);
+  const c2=(+gv('c2-cuo')||0)+(+gv('c2-hip')||0);
+  const tI=i1+i2, tC=c1+c2;
+  const rat=tI>0?Math.round((tC/tI)*100):0;
+  document.getElementById('r-ing').textContent=tI?fm(tI)+'/mes':'—';
+  document.getElementById('r-cuo').textContent=tC?fm(tC)+'/mes':'—';
+  const re=document.getElementById('r-rat');
+  re.textContent=tI?rat+'%':'—';
+  re.style.color=rat>35?'#c0392b':rat>25?'#c47a00':'#1a7a45';
+}
+['c1-ing','c2-ing','c1-cuo','c1-hip','c2-cuo','c2-hip'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input',()=>{if(coActive)calcResumen();});
+});
+
+function openCliForm(id){
+  eCli=id||null;
+  document.getElementById('fv-cli-title').textContent=id?'Editar cliente':'Nuevo cliente';
+  const f1=['nom','ape','tel','ema','dni','fue','trab','ing','ant','cuo','hip','hij','aho','not'];
+  f1.forEach(f=>sv('c1-'+f,''));
+  ['nom','ape','tel','ema','dni','trab','ing','ant','cuo','hip','hij','aho','not'].forEach(f=>sv('c2-'+f,''));
+  sv('c1-fue','LinkedIn'); sv('c2-rel','Pareja / Cónyuge');
+  if(id){
+    const c=clis.find(x=>x.id===id);
+    if(c){
+      f1.forEach(f=>sv('c1-'+f,c[f]||''));
+      if(c.co){ setCoState(true); Object.keys(c.co).forEach(f=>sv('c2-'+f,c.co[f]||'')); calcResumen(); }
+      else { setCoState(false); }
+    }
+  } else { setCoState(false); }
+  prevP=curP; showView('fv-cli');
+}
+async function saveCli(){
+  const nom=gv('c1-nom').trim(); if(!nom){toast('Introduce el nombre del titular',true);return;}
+  const btn=document.getElementById('btn-save-cli');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const data={
+    nom, ape:gv('c1-ape'), tel:gv('c1-tel'), ema:gv('c1-ema'), dni:gv('c1-dni'), fue:gv('c1-fue'),
+    trab:gv('c1-trab'), ing:+gv('c1-ing')||null, ant:gv('c1-ant'),
+    cuo:+gv('c1-cuo')||null, hip:+gv('c1-hip')||null, hij:+gv('c1-hij')||null, aho:+gv('c1-aho')||null,
+    not_text:gv('c1-not'), co:null
+  };
+  if(coActive){
+    data.co={nom:gv('c2-nom'),ape:gv('c2-ape'),tel:gv('c2-tel'),ema:gv('c2-ema'),dni:gv('c2-dni'),rel:gv('c2-rel'),
+      trab:gv('c2-trab'),ing:+gv('c2-ing')||null,ant:gv('c2-ant'),
+      cuo:+gv('c2-cuo')||null,hip:+gv('c2-hip')||null,hij:+gv('c2-hij')||null,aho:+gv('c2-aho')||null,not:gv('c2-not')};
+  }
+  try{
+    if(eCli){ await dbUpdate('clientes',eCli,data); clis=clis.map(c=>c.id===eCli?{...c,...data}:c); toast('Cliente actualizado'); }
+    else{ const [res]=await dbInsert('clientes',data); clis=[res,...clis]; toast('Cliente creado'); }
+    backFrom('cli');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+  btn.disabled=false; btn.textContent='Guardar cliente';
+}
+async function delCli(id){
+  if(!confirm('¿Eliminar este cliente?'))return;
+  try{ await dbDelete('clientes',id); clis=clis.filter(c=>c.id!==id); toast('Cliente eliminado'); rClis(); }
+  catch(e){ toast('Error al eliminar',true); }
+}
+
+function backFrom(t){
+  showView('v-'+prevP);
+  if(prevP==='dash')rDash(); else if(prevP==='pipe')rPipe(); else if(prevP==='ops')rOps(); else if(prevP==='clis')rClis();
+  curP=prevP;
+}
+function swTab(t){
+  ['dat','not'].forEach(x=>{const e=document.getElementById('tab-'+x);if(e)e.style.display=x===t?'block':'none';document.getElementById('t-'+x).classList.toggle('on',x===t);});
+  if(t==='not'&&eOp){const o=ops.find(x=>x.id===eOp);if(o)rNotas(o.notas||[]);}
+}
+
+// INIT
+(async()=>{
+  await loadAll();
+  rDash();
+})();
+</script>
+</body>
+</html>
